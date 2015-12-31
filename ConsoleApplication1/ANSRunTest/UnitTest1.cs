@@ -4,16 +4,22 @@ using ANSRun;
 using System.Collections.Generic;
 using System.Xml;
 using System.Net;
+using System.Text;
 
 namespace ANSRunTest
 {
-    [TestClass]
+    public class DummyLogger :  Program.ILogger {
+        public void Log(string message) { }
+    }
+     [TestClass]
     public class UnitTest1
     {
+        public Program.ILogger logger = new DummyLogger();
+
         [TestMethod]
         public void TestMethod_GetCountryList()
         {
-            string testrow ="<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"+ @"<html>
+            string testrow = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" + @"<html>
     <body>
         <div></div>
 <div id='content'>
@@ -47,13 +53,15 @@ namespace ANSRunTest
     </body>
 </html>
             ";
-            List<Program.CountryInfo> countries = Program.GetCountryList(testrow);
+          
+            List<Program.CountryInfo> countries = Program.GetCountryListHTML(testrow, logger);
             Assert.AreEqual(1, countries.Count);
             Assert.AreEqual("United States", countries[0].CountryDescription);
             Assert.AreEqual("US", countries[0].CountryCodeCC);
             Assert.AreEqual(24964, countries[0].ASNs);
             Assert.AreEqual("/country/US", countries[0].reportLink);
         }
+
 
 
         [TestMethod]
@@ -102,7 +110,7 @@ namespace ANSRunTest
 </html>
             ";
 
-            List<Program.ANSInfo> ANSs = Program.GetANSList(testrow);
+            List<Program.ANSInfo> ANSs = Program.GetANSListHTML(testrow);
             Assert.AreEqual(3, ANSs.Count);
             //
             Assert.AreEqual("AS8708", ANSs[0].ASN);
@@ -134,68 +142,25 @@ namespace ANSRunTest
             });
             Assert.AreEqual("\"1234\":{\"Country\":\"DE\",\"Name\":\"gun HO\",\"Routes v4\":12,\"Routes v6\":542}", result);
         }
+
         [TestMethod]
-        public void TestMethod_CorrectForAmpersandCopy()
+        public void TestMethod_RemoveTrailingComma()
         {
-            string testrow = @"<html>
-	 <div id = 'footer' >
-    Updated 29 Dec 2015 10:01 PST &copy; 2015 Hurricane Electric
-    </div>
-</html>
-            ";
+            StringBuilder sb = new StringBuilder();
+            Assert.AreEqual("", Program.RemoveTrailingComma(sb));
 
-            string testrowb = @"<html>
-	 <div id = 'footer' >
-    Updated 29 Dec 2015 10:01 PST &#169; 2015 Hurricane Electric
-    </div>
-</html>
-            ";
-            string ctext = Program.CorrectForAmpersandCopy(testrow);
-            XmlDocument document = new XmlDocument();
-
-            document.LoadXml(ctext);
-
+            //
+            sb.Append(",");
+            Assert.AreEqual("", Program.RemoveTrailingComma(sb));
+            //
+            //
+            sb.Append("nope");
+            Assert.AreEqual(",nope", Program.RemoveTrailingComma(sb));
+            //
+            sb.Append(",");
+            Assert.AreEqual(",nope", Program.RemoveTrailingComma(sb));
         }
-        [TestMethod]
-        public void TestMethod_CorrectForAttributeAmpersand()
-        {
-            Assert.AreEqual("absdF", Program.CorrectForAttributeAmpersand("absdF"));
-            Assert.AreEqual("&amp;", Program.CorrectForAttributeAmpersand("&amp;"));
-            Assert.AreEqual("\"s &amp; p\"", Program.CorrectForAttributeAmpersand("\"s &amp; p\""));
-            Assert.AreEqual("\"s&amp;p\"", Program.CorrectForAttributeAmpersand("\"s&p\""));
-            Assert.AreEqual("&amp;x", Program.CorrectForAttributeAmpersand("&amp;x"));
 
-            Assert.AreEqual("RCS &amp;RDS SA", Program.CorrectForAttributeAmpersand("RCS &RDS SA"));
-            Assert.AreEqual("RCS &amp; RDS SA", Program.CorrectForAttributeAmpersand("RCS & RDS SA"));
-            Assert.AreEqual("&amp;", Program.CorrectForAttributeAmpersand("&"));
-
-            Assert.AreEqual("&copy;", Program.CorrectForAttributeAmpersand("&copy;"));
-            Assert.AreEqual("&#169;", Program.CorrectForAttributeAmpersand("&#169;"));
-
-            string testrow = @"<html>
-	 <td><a href = ""/AS8708"" title= ""AS8708 - RCS &amp; RDS SA"" > AS8708 </a></td>
-     <td>RCS & RDS SA</td>
-</html>
-            ";
-
-            string testrowb = @"<html>
-	 <td><a href = ""/AS8708"" title= ""AS8708 - RCS  &amp; RDS SA"" > AS8708 </a></td>
-     <td>RCS &amp; RDS SA</td>
-</html>
-            ";
-            string ctext = Program.CorrectForAttributeAmpersand(testrow);
-            string ectext = WebUtility.HtmlEncode(Program.CorrectForAttributeAmpersand(testrow));
-            string dectext = WebUtility.HtmlDecode(WebUtility.HtmlEncode(Program.CorrectForAttributeAmpersand(testrow)));
-            string dtext = WebUtility.HtmlDecode(testrowb);
-            string etext = WebUtility.HtmlEncode(testrowb);
-
-            XmlDocument document = new XmlDocument();
-            document.LoadXml(ctext);
-            // document.LoadXml(etext); //1 1
-            //document.LoadXml(dtext); //1 49
-            //document.LoadXml(testrow);
-
-        }
         [TestMethod]
         public void TestMethod_GetCountryList_Big()
         {
@@ -5319,11 +5284,12 @@ var google_remarketing_only = true;
 </body>
 </html>
 ";
-            List<Program.CountryInfo> countries = Program.GetCountryList(testrow);
-            Assert.AreEqual(1, countries.Count);
+            
+            List<Program.CountryInfo> countries = Program.GetCountryListHTML(testrow, logger);
+            Assert.IsTrue(countries.Count >= 237);
             Assert.AreEqual("United States", countries[0].CountryDescription);
             Assert.AreEqual("US", countries[0].CountryCodeCC);
-            Assert.AreEqual(24964, countries[0].ASNs);
+            Assert.AreEqual(24970, countries[0].ASNs);
             Assert.AreEqual("/country/US", countries[0].reportLink);
         }
     }

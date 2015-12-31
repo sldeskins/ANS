@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Net.Http;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
-using System.Xml;
 using System.Text.RegularExpressions;
 using System.Text;
+using HtmlAgilityPack;
 
 namespace ANSRun
 {
@@ -15,7 +13,11 @@ namespace ANSRun
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Starting search");
+            string LogFile = @"c:\temp\bgp_he_net_log.txt";
+            ILogger logger = new LoggerFileConsole(LogFile);
+
+            logger.Log("Starting search");
+
             /*
             # Web scraping
             # ASNs (Autonomous System Numbers) are one of the building blocks of the
@@ -42,46 +44,56 @@ namespace ANSRun
             Uri _UriRelCountriesReport = new Uri("/report/world", UriKind.Relative);
             Uri _UirStartWalkCounties = new Uri(_bgp_base, _UriRelCountriesReport);
 
+
             HttpWebResponse responseCountries;
             if (Get(_UirStartWalkCounties, out responseCountries))
             {
                 string countryPageData = GetResponseAsText(responseCountries);
-                List<CountryInfo> countryList = GetCountryList(countryPageData);
 
-                ProcessReportsForCountries(_bgp_base, countryList);
+                List<CountryInfo> countryList = GetCountryListHTML(countryPageData, logger);
+
+                ProcessReportsForCountries(_bgp_base, countryList, logger);
             }
             else {
-                Console.WriteLine("Initial country page did not process");
+                logger.Log("Initial country page did not process");
             }
 
-            // Check whether the new Uri is absolute or relative.
-            if (!_UriRelCountriesReport.IsAbsoluteUri)
-                Console.WriteLine("{0} is a relative Uri.", _UriRelCountriesReport);
-
+            // // Check whether the new Uri is absolute or relative.
+            // if (!_UriRelCountriesReport.IsAbsoluteUri)
+            //     Console.WriteLine("{0} is a relative Uri.", _UriRelCountriesReport);
+            logger.Log("Completed");
             Console.ReadKey();
         }
 
-        private static void ProcessReportsForCountries(Uri uribase, List<CountryInfo> countryList)
+        private static void ProcessReportsForCountries(Uri uribase, List<CountryInfo> countryList, ILogger logger)
         {
-
             StringBuilder fileContents = new StringBuilder();
-            
+
             foreach (CountryInfo countryInfo in countryList)
             {
                 Uri _UriCountryReport = new Uri(uribase, countryInfo.reportLink);
                 HttpWebResponse responseCountryReport;
                 if (Get(_UriCountryReport, out responseCountryReport))
                 {
-                    string countryANSReportJson = ProcessCountryReport(countryInfo.CountryCodeCC, responseCountryReport);
-                    fileContents.Append(countryANSReportJson + ",");
+                    string countryANSReportJson = ProcessCountryReport(countryInfo.CountryCodeCC, responseCountryReport, logger);
+                    if (!string.IsNullOrWhiteSpace(countryANSReportJson))
+                    {
+                        fileContents.Append(countryANSReportJson + ",");
+                    }
                 }
                 else {
-                    Console.WriteLine("report for did not process");
+                    logger.Log("report for " + countryInfo.CountryCodeCC + "did not process");
                 }
             }
-            
+            string filename = @"c:\temp\bgp_he_net.json";
+            WriteFileContents(filename, RemoveTrailingComma(fileContents));
         }
 
+        private static void WriteFileContents(String filename, String fileContents)
+        {
+            File.Create(filename).Dispose();
+            File.AppendAllText(filename, "{" + fileContents + "}");
+        }
 
         public class CountryInfo
         {
@@ -90,87 +102,46 @@ namespace ANSRun
             public int ASNs;
             public string reportLink;
         }
-        public static List<CountryInfo> GetCountryList(string htmlText)
+
+        public static List<CountryInfo> GetCountryListHTML(string htmlText, ILogger logger)
         {
             List<CountryInfo> countryList = new List<CountryInfo>();
-            XmlDocument document = new XmlDocument();
-            string rtext = Clean(htmlText);
-            document.LoadXml(rtext);
+            var html = new HtmlDocument();
+            html.LoadHtml(htmlText); // load a string
 
-            XmlNodeList countries2= document.SelectNodes("/html/body//div");
-            Console.WriteLine("countries2 " + countries2.Count);
+            HtmlNode countries = html.GetElementbyId("countries");
 
-            XmlNode countries = document.SelectSingleNode("//div[@id='countries']"); 
+            HtmlNodeCollection rows = countries.SelectNodes(".//tbody/tr");
 
-            XmlNodeList rows = countries.SelectNodes(".//tbody/tr");
-            Console.WriteLine("rows " + rows.Count);
 
-            foreach (XmlNode row in rows)
+            foreach (HtmlNode row in rows)
             {
                 CountryInfo countryInfo = new CountryInfo();
-                XmlNodeList columns = row.SelectNodes("td");
+                HtmlNodeCollection columns = row.SelectNodes("td");
 
-
-                XmlNode countryDescritionNode = columns[0].SelectSingleNode("//img[@title]");
-                countryInfo.CountryDescription = countryDescritionNode.Attributes.GetNamedItem("title").InnerText;
+                HtmlNode countryDescritionNode = columns[0].SelectSingleNode("//img[@title]");
+                countryInfo.CountryDescription = countryDescritionNode.GetAttributeValue("title", "");
 
                 countryInfo.CountryCodeCC = columns[1].InnerText.Trim();
 
                 countryInfo.ASNs = GetIntFromString(columns[2].InnerText);
 
-                XmlNode reportLinkNode = columns[3].SelectSingleNode("//a[@href]");
-                countryInfo.reportLink = reportLinkNode.Attributes.GetNamedItem("href").InnerText;
+                HtmlNode reportLinkNode = columns[3].SelectSingleNode(".//a[@href]");
+                countryInfo.reportLink = reportLinkNode.GetAttributeValue("href", "");
 
 
                 countryList.Add(countryInfo);
             }
+            logger.Log("There are " + countryList.Count + " counties.");
             return countryList;
         }
-
-      
 
         public static int GetIntFromString(string value)
         {
             return int.Parse(Regex.Replace(value.Trim(), @"[,]", ""));
         }
-        public static string Clean(string htmlText)
-        {
-            return  CorrectForAmpersandCopy (CorrectForAttributeAmpersand(htmlText));
-        }
-        public static string CorrectForAmpersandCopy(string value)
-        {
-            return Regex.Replace(value.Trim(), "(&copy;)", "&#169;");
 
-        }        public static string CorrectForAttributeAmpersand(string value)
-        {
-            //  return Regex.Replace(value.Trim(), "[&][^(amp;)|*]", "&amp;");
-            // return Regex.Replace(value.Trim(), "(([&][^(&amp;)]){1})|(^[&]$)", "&amp;");
-            // Regex.Replace(value, "(([&][^(amp;)]){1})|(^[&]$)", "&amp;");
-            // string part1 = Regex.Replace(value, "(([&][^(amp;)]+))", "&amp;");
-            // return part1;
-            string[] parts = value.Split(new char[] { '&' });
-            StringBuilder c = new StringBuilder();
 
-            if (value.IndexOf('&') >= 0)
-            {
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    c.Append(parts[i]);
-                    if (i < (parts.Length - 1))
-                    {
-                        if (parts[i + 1].Length >= 4 && parts[i + 1].Substring(0, 4) == "amp;")
-                        {
-                            c.Append("&");
-                        }
-                        else if (parts[i + 1].IndexOf(';') < 0) { c.Append("&amp;"); }
-                        else { c.Append("&"); }
-                    }
-                }
-            }
-            else { c.Append(value); }
-
-            return c.ToString();
-        }
         public class ANSInfo
         {
             public string ASN;
@@ -180,10 +151,13 @@ namespace ANSRun
             public int Adjacencies_v6;
             public int Routes_v6;
         }
-        private static string ProcessCountryReport(string countryCode, HttpWebResponse responseCountryReport)
+        private static string ProcessCountryReport(string countryCode, HttpWebResponse responseCountryReport, ILogger logger)
+
         {
             string countryReportData = GetResponseAsText(responseCountryReport);
-            List<ANSInfo> ANSInfoList = GetANSList(countryReportData);
+            List<ANSInfo> ANSInfoList = GetANSListHTML(countryReportData);
+            logger.Log("There are " + ANSInfoList.Count + " ANSs for " + countryCode + ".");
+
 
             StringBuilder jInnards = new StringBuilder();
             foreach (ANSInfo aNSInfo in ANSInfoList)
@@ -191,7 +165,20 @@ namespace ANSRun
                 jInnards.Append(JsonASNInfo(countryCode, aNSInfo) + ",");
             }
 
-            return jInnards.ToString().Substring(0, jInnards.Length - 1);
+            return RemoveTrailingComma(jInnards);
+        }
+
+        public static string RemoveTrailingComma(StringBuilder sb)
+        {
+
+            if (sb.Length > 0)
+            {
+                if (sb.ToString().Substring(sb.Length - 1) == ",") { return sb.ToString().Substring(0, sb.Length - 1); }
+                else return sb.ToString();
+            }
+
+            else { return sb.ToString(); }
+
         }
         public static string JsonASNInfo(string countryCode, ANSInfo ansInfo)
         {
@@ -234,48 +221,38 @@ namespace ANSRun
             return sb.ToString();
         }
 
-        public static List<ANSInfo> GetANSList(string htmlText)
+        public static List<ANSInfo> GetANSListHTML(string htmlText)
         {
             List<ANSInfo> ansList = new List<ANSInfo>();
-            XmlDocument document = new XmlDocument();
-           
-            document.LoadXml(Clean(htmlText));
-            XmlNode countries = document.SelectSingleNode("//div[@id='country']");
-            XmlNodeList rows = countries.SelectNodes("//tbody/tr");
-            foreach (XmlNode row in rows)
+            var html = new HtmlDocument();
+            html.LoadHtml(htmlText);
+
+            HtmlNode countries = html.GetElementbyId("country");
+            HtmlNodeCollection rows = countries.SelectNodes(".//tbody/tr");
+            if (rows != null)
             {
-                ANSInfo ANSInfo = new ANSInfo();
-                XmlNodeList columns = row.SelectNodes("td");
+                foreach (HtmlNode row in rows)
+                {
+                    ANSInfo ANSInfo = new ANSInfo();
+                    HtmlNodeCollection columns = row.SelectNodes("td");
+                    columns = row.SelectNodes("td");
 
-                XmlNode ansNode = columns[0].SelectSingleNode("./a");
-                //countryInfo.CountryDescription = countryDescritionNode.Attributes.GetNamedItem("title").InnerText;
-                ANSInfo.ASN = ansNode.InnerText.Trim();
+                    HtmlNode ansNode = columns[0].SelectSingleNode("./a");
+                    ANSInfo.ASN = ansNode.InnerText.Trim();
 
-                ANSInfo.ASN_Name = columns[1].InnerText.Trim();
+                    ANSInfo.ASN_Name = columns[1].InnerText.Trim();
 
-                ANSInfo.Adjacencies_v4 = GetIntFromString(columns[2].InnerText);
-                ANSInfo.Routes_v4 = GetIntFromString(columns[3].InnerText);
-                ANSInfo.Adjacencies_v6 = GetIntFromString(columns[4].InnerText);
-                ANSInfo.Routes_v6 = GetIntFromString(columns[5].InnerText);
+                    ANSInfo.Adjacencies_v4 = GetIntFromString(columns[2].InnerText);
+                    ANSInfo.Routes_v4 = GetIntFromString(columns[3].InnerText);
+                    ANSInfo.Adjacencies_v6 = GetIntFromString(columns[4].InnerText);
+                    ANSInfo.Routes_v6 = GetIntFromString(columns[5].InnerText);
 
-                ansList.Add(ANSInfo);
+                    ansList.Add(ANSInfo);
+                }
             }
             return ansList;
         }
-        class JsonInfo
-        {
-            [JsonIgnore]
-            string ASN;
 
-            public string Country;
-            public string Name;
-
-            [JsonProperty(PropertyName = "Routes v4")]
-            public string Routesv4;
-
-            [JsonProperty(PropertyName = "Routes v6")]
-            public string Routesv6;
-        }
         static bool Get(Uri uri, out HttpWebResponse response)
         {
             bool result = false;
@@ -287,9 +264,7 @@ namespace ANSRun
             // If required by the server, set the credentials.
             request.Credentials = CredentialCache.DefaultCredentials;
 
-            // Get the response.
-            //    Console.WriteLine("before");
-
+            // Get the response. 
             request.Method = "GET";
             request.ContentType = "application/x-www-form-urlencoded";
 
@@ -297,13 +272,10 @@ namespace ANSRun
             request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)";
 
             response = (HttpWebResponse)request.GetResponse();
-            // Console.WriteLine("after");
 
             // Display the status.
             if (response.StatusDescription == "OK") { result = true; }
-            Console.WriteLine(response.StatusDescription);
-
-
+         
             return result;
         }
         static string GetResponseAsText(HttpWebResponse response)
@@ -322,19 +294,24 @@ namespace ANSRun
 
             return responseFromServer;
         }
-        static async Task<string> GetAsync(Uri uri)
+
+        public interface ILogger
         {
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(uri);
-
-            //will throw an exception if not successful
-            response.EnsureSuccessStatusCode();
-
-            string content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("In async call");
-
-            //    return await Task.Run(() => JsonObject.Parse(content));
-            return await Task.Run(() => " ");
+            void Log(string message);
+        }
+        public class LoggerFileConsole : ILogger
+        {
+            public string filename;
+            public LoggerFileConsole(string filename)
+            {
+                this.filename = filename;
+                File.Create(filename).Dispose();
+            }
+            public void Log(string message)
+            {
+                Console.WriteLine(message);
+                File.AppendAllText(filename, message+Environment.NewLine);
+            }
         }
     }
 }
