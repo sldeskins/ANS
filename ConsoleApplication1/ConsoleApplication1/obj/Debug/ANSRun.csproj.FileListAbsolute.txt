@@ -1,0 +1,8 @@
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\obj\Debug\ANSRun.csprojResolveAssemblyReference.cache
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\bin\Debug\Newtonsoft.Json.dll
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\bin\Debug\Newtonsoft.Json.xml
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\bin\Debug\ANSRun.exe.config
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\bin\Debug\ANSRun.exe
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\bin\Debug\ANSRun.pdb
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\obj\Debug\ANSRun.exe
+C:\Exercises\ANS\ConsoleApplication1\ConsoleApplication1\obj\Debug\ANSRun.pdb
