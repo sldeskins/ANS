@@ -62,7 +62,7 @@ namespace ANSRun
             // if (!_UriRelCountriesReport.IsAbsoluteUri)
             //     Console.WriteLine("{0} is a relative Uri.", _UriRelCountriesReport);
             logger.Log("Completed");
-            Console.ReadKey();
+           // Console.ReadKey();
         }
 
         private static void ProcessReportsForCountries(Uri uribase, List<CountryInfo> countryList, ILogger logger)
