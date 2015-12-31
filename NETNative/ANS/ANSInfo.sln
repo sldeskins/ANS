@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSRun", "ConsoleApplication1\ANSRun.csproj", "{17F68CEB-9A08-4809-939C-C9D802EFBCF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSRun", "ANSRun\ANSRun.csproj", "{17F68CEB-9A08-4809-939C-C9D802EFBCF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSRunTest", "ANSRunTest\ANSRunTest.csproj", "{89ED8091-B938-473F-9CF0-83CE4065ABEF}"
 EndProject

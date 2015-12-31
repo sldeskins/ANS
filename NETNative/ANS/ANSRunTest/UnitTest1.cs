@@ -1,9 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ANSRun;
 using System.Collections.Generic;
-using System.Xml;
-using System.Net;
 using System.Text;
 
 namespace ANSRunTest

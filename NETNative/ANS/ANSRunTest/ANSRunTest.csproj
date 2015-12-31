@@ -55,7 +55,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ConsoleApplication1\ANSRun.csproj">
+    <ProjectReference Include="..\ANSRun\ANSRun.csproj">
       <Project>{17f68ceb-9a08-4809-939c-c9d802efbcf4}</Project>
       <Name>ANSRun</Name>
     </ProjectReference>
