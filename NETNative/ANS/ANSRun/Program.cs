@@ -13,7 +13,8 @@ namespace ANSRun
     {
         static void Main(string[] args)
         {
-            string LogFile = @"c:\temp\bgp_he_net_log.txt";
+           string outFolder= GetMakeOutputDirectory();
+            string LogFile = outFolder+ @"\bgp_he_net_log.txt";
             ILogger logger = new LoggerFileConsole(LogFile);
 
             logger.Log("Starting search");
@@ -85,7 +86,8 @@ namespace ANSRun
                     logger.Log("report for " + countryInfo.CountryCodeCC + "did not process");
                 }
             }
-            string filename = @"c:\temp\bgp_he_net.json";
+            string outFolder = GetMakeOutputDirectory();
+            string filename = outFolder + @"\bgp_he_net.json";
             WriteFileContents(filename, RemoveTrailingComma(fileContents));
         }
 
@@ -312,6 +314,14 @@ namespace ANSRun
                 Console.WriteLine(message);
                 File.AppendAllText(filename, message+Environment.NewLine);
             }
+        }
+        static string GetMakeOutputDirectory() {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string outputDirectory = baseDirectory + "\\Output";
+            if (!Directory.Exists(outputDirectory)){
+                Directory.CreateDirectory(outputDirectory);
+            }
+            return outputDirectory;
         }
     }
 }
