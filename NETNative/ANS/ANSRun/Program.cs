@@ -24,30 +24,29 @@ namespace ANSRun
             Uri _bgp_base = new Uri("http://agilemanifesto.org/display");
             Uri _UriRelCountriesReport = new Uri("/report/world", UriKind.Relative);
             Uri _UirStartWalkCounties = new Uri(_bgp_base, _UriRelCountriesReport);
-            int min = 1;
-            int max = 391;
-
-            for (int i = min; i < (max + 1); i++)
-            {
-                HttpWebResponse responseCountries;
-                if (Walker.Walker.Get(_UirStartWalkCounties, out responseCountries))
-                {
-                    string countryPageData = Walker.Walker.GetResponseAsText(responseCountries);
-
-                    List<CountryInfo> countryList = Parser_ANSCountry.GetCountryListHTML(countryPageData, logger);
-
-                    ProcessReportsForCountries(_bgp_base, countryList, logger);
-                }
-                else
-                {
-                    logger.Log("Initial country page did not process");
-                }
-            }
+           
             // // Check whether the new Uri is absolute or relative.
             // if (!_UriRelCountriesReport.IsAbsoluteUri)
             //     Console.WriteLine("{0} is a relative Uri.", _UriRelCountriesReport);
             logger.Log("Completed");
             // Console.ReadKey();
+        }
+
+        private static void ProcessANS(Uri _UirStartWalkCounties, Uri _bgp_base, ILogger logger)
+        {
+            HttpWebResponse responseCountries;
+            if (Walker.Walker.Get(_UirStartWalkCounties, out responseCountries))
+            {
+                string countryPageData = Walker.Walker.GetResponseAsText(responseCountries);
+
+                List<CountryInfo> countryList = Parser_ANSCountry.GetCountryListHTML(countryPageData, logger);
+
+                ProcessReportsForCountries(_bgp_base, countryList, logger);
+            }
+            else
+            {
+                logger.Log("Initial country page did not process");
+            }
         }
 
         private static void ProcessReportsForCountries(Uri uribase, List<CountryInfo> countryList, ILogger logger)
