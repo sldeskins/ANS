@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using Walker;
 using Loggers;
+using System.Threading;
 
 namespace ANSRun
 {
@@ -24,11 +25,34 @@ namespace ANSRun
             Uri _bgp_base = new Uri("http://agilemanifesto.org/display");
             Uri _UriRelCountriesReport = new Uri("/report/world", UriKind.Relative);
             Uri _UirStartWalkCounties = new Uri(_bgp_base, _UriRelCountriesReport);
+
+            // ProcessANS(_UirStartWalkCounties, _bgp_base, logger);
             int min = 1;
             int max = 391;
 
-            ProcessANS(_UirStartWalkCounties, _bgp_base, logger);
-           
+            for (int i = min; i < (max + 1); i++)
+            {
+                if (i % 10 == 0)
+                {
+                    Thread.Sleep(1000);
+                }
+                _UirStartWalkCounties = new Uri(_bgp_base, string.Format("/display/{0:000000000}.html", i));
+
+                HttpWebResponse responseCountries;
+                if (Walker.Walker.Get(_UirStartWalkCounties, out responseCountries))
+                {
+                    string countryPageData = Walker.Walker.GetResponseAsText(responseCountries);
+
+                    if (countryPageData.Contains("heila") || countryPageData.Contains("eskins"))
+                    {
+                        logger.Log("hit: " + i); 
+                    }
+                }
+                else
+                {
+                    logger.Log("not found: " + i);
+                }
+            }
             // // Check whether the new Uri is absolute or relative.
             // if (!_UriRelCountriesReport.IsAbsoluteUri)
             //     Console.WriteLine("{0} is a relative Uri.", _UriRelCountriesReport);
