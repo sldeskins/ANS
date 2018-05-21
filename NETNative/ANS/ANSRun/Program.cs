@@ -24,6 +24,10 @@ namespace ANSRun
             Uri _bgp_base = new Uri("http://agilemanifesto.org/display");
             Uri _UriRelCountriesReport = new Uri("/report/world", UriKind.Relative);
             Uri _UirStartWalkCounties = new Uri(_bgp_base, _UriRelCountriesReport);
+            int min = 1;
+            int max = 391;
+
+            ProcessANS(_UirStartWalkCounties, _bgp_base, logger);
            
             // // Check whether the new Uri is absolute or relative.
             // if (!_UriRelCountriesReport.IsAbsoluteUri)
