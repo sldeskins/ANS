@@ -2,16 +2,19 @@
 using ANSRun;
 using System.Collections.Generic;
 using System.Text;
+using Loggers;
+using Walker;
 
 namespace ANSRunTest
 {
-    public class DummyLogger :  Program.ILogger {
+    public class DummyLogger : ILogger
+    {
         public void Log(string message) { }
     }
-     [TestClass]
+    [TestClass]
     public class UnitTest1
     {
-        public Program.ILogger logger = new DummyLogger();
+        public ILogger logger = new DummyLogger();
 
         [TestMethod]
         public void TestMethod_GetCountryList()
@@ -50,8 +53,8 @@ namespace ANSRunTest
     </body>
 </html>
             ";
-          
-            List<Program.CountryInfo> countries = Program.GetCountryListHTML(testrow, logger);
+
+            List<CountryInfo> countries = Parser_ANSCountry.GetCountryListHTML(testrow, logger);
             Assert.AreEqual(1, countries.Count);
             Assert.AreEqual("United States", countries[0].CountryDescription);
             Assert.AreEqual("US", countries[0].CountryCodeCC);
@@ -107,7 +110,7 @@ namespace ANSRunTest
 </html>
             ";
 
-            List<Program.ANSInfo> ANSs = Program.GetANSListHTML(testrow);
+            List<ANSInfo> ANSs = Parser_ANSCountry.GetANSListHTML(testrow);
             Assert.AreEqual(3, ANSs.Count);
             //
             Assert.AreEqual("AS8708", ANSs[0].ASN);
@@ -130,7 +133,7 @@ namespace ANSRunTest
         [TestMethod]
         public void TestMethod_JsonASNInfo()
         {
-            string result = Program.JsonASNInfo("DE", new ANSRun.Program.ANSInfo()
+            string result = Parser_ANSCountry.JsonASNInfo("DE", new ANSInfo()
             {
                 ASN = "1234",
                 Routes_v4 = 12,
@@ -144,18 +147,18 @@ namespace ANSRunTest
         public void TestMethod_RemoveTrailingComma()
         {
             StringBuilder sb = new StringBuilder();
-            Assert.AreEqual("", Program.RemoveTrailingComma(sb));
+            Assert.AreEqual("", ParserHelper.RemoveTrailingComma(sb));
 
             //
             sb.Append(",");
-            Assert.AreEqual("", Program.RemoveTrailingComma(sb));
+            Assert.AreEqual("", ParserHelper.RemoveTrailingComma(sb));
             //
             //
             sb.Append("nope");
-            Assert.AreEqual(",nope", Program.RemoveTrailingComma(sb));
+            Assert.AreEqual(",nope", ParserHelper.RemoveTrailingComma(sb));
             //
             sb.Append(",");
-            Assert.AreEqual(",nope", Program.RemoveTrailingComma(sb));
+            Assert.AreEqual(",nope", ParserHelper.RemoveTrailingComma(sb));
         }
 
         [TestMethod]
@@ -5281,8 +5284,8 @@ var google_remarketing_only = true;
 </body>
 </html>
 ";
-            
-            List<Program.CountryInfo> countries = Program.GetCountryListHTML(testrow, logger);
+
+            List<CountryInfo> countries = Parser_ANSCountry.GetCountryListHTML(testrow, logger);
             Assert.IsTrue(countries.Count >= 237);
             Assert.AreEqual("United States", countries[0].CountryDescription);
             Assert.AreEqual("US", countries[0].CountryCodeCC);

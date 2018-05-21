@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSRun", "ANSRun\ANSRun.csproj", "{17F68CEB-9A08-4809-939C-C9D802EFBCF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANSRunTest", "ANSRunTest\ANSRunTest.csproj", "{89ED8091-B938-473F-9CF0-83CE4065ABEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Walker", "Walker\Walker.csproj", "{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loggers", "Loggers\Loggers.csproj", "{6893C50B-C2C1-4AD3-B078-ADEA2F61AD49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{89ED8091-B938-473F-9CF0-83CE4065ABEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89ED8091-B938-473F-9CF0-83CE4065ABEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89ED8091-B938-473F-9CF0-83CE4065ABEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6893C50B-C2C1-4AD3-B078-ADEA2F61AD49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6893C50B-C2C1-4AD3-B078-ADEA2F61AD49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6893C50B-C2C1-4AD3-B078-ADEA2F61AD49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6893C50B-C2C1-4AD3-B078-ADEA2F61AD49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

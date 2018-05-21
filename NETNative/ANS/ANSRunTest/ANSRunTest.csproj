@@ -59,6 +59,14 @@
       <Project>{17f68ceb-9a08-4809-939c-c9d802efbcf4}</Project>
       <Name>ANSRun</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Loggers\Loggers.csproj">
+      <Project>{6893c50b-c2c1-4ad3-b078-adea2f61ad49}</Project>
+      <Name>Loggers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Walker\Walker.csproj">
+      <Project>{F7DE2127-1D5E-4D82-B5B1-530D788EB38A}</Project>
+      <Name>Walker</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
