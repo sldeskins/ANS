@@ -43,9 +43,17 @@ namespace ANSRun
                 {
                     string countryPageData = Walker.Walker.GetResponseAsText(responseCountries);
 
-                    if (countryPageData.Contains("heila") || countryPageData.Contains("eskins"))
+                    if (countryPageData.ToLower().Contains("heila")  )
                     {
-                        logger.Log("hit: " + i); 
+                        logger.Log("hit heila: " + i); 
+                    }
+                    if (  countryPageData.ToLower().Contains("eskins"))
+                    {
+                        logger.Log("hit eskins: " + i);
+                    }
+                    if (countryPageData.ToLower().Contains("sld"))
+                    {
+                        logger.Log("hit sld: " + i);
                     }
                 }
                 else
